@@ -92,6 +92,24 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+app.post('/api/check-subscription', (req, res) => {
+  try {
+    const { username } = req.body;
+    const db = readDB();
+    const user = db.users.find(u => u.username === username);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Пользователь не найден' });
+    }
+    const now = new Date();
+    const subEnd = user.subscription_end ? new Date(user.subscription_end) : null;
+    const hasSubscription = subEnd && subEnd > now;
+    res.json({ success: true, has_subscription: hasSubscription, subscription_end: user.subscription_end });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Ошибка сервера' });
+  }
+});
+
 app.post('/api/admin/reset-hwid', (req, res) => {
   try {
     const { username, admin_key } = req.body;
@@ -105,6 +123,31 @@ app.post('/api/admin/reset-hwid', (req, res) => {
       writeDB(db);
     }
     res.json({ success: true, message: 'HWID сброшен' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Ошибка сервера' });
+  }
+});
+
+app.post('/api/admin/set-subscription', (req, res) => {
+  try {
+    const { username, days } = req.body;
+    const db = readDB();
+    const user = db.users.find(u => u.username === username);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Пользователь не найден' });
+    }
+    if (days === 0) {
+      user.subscription_end = null;
+      writeDB(db);
+      res.json({ success: true, message: 'Подписка удалена' });
+    } else {
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + days);
+      user.subscription_end = endDate.toISOString();
+      writeDB(db);
+      res.json({ success: true, message: `Подписка установлена до ${endDate.toLocaleDateString('ru-RU')}` });
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Ошибка сервера' });
