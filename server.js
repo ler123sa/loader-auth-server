@@ -164,13 +164,10 @@ app.post('/api/auth/register', async (req, res) => {
         // Hash password
         const passwordHash = await bcrypt.hash(password, 12);
 
-        // Create user with 30 days subscription
-        const subscriptionEnd = new Date();
-        subscriptionEnd.setDate(subscriptionEnd.getDate() + 30);
-
+        // Create user WITHOUT subscription (admin will add manually)
         db.run(
-          'INSERT INTO users (username, password_hash, hwid, subscription_end) VALUES (?, ?, ?, ?)',
-          [username, passwordHash, hwid, subscriptionEnd.toISOString()],
+          'INSERT INTO users (username, password_hash, hwid) VALUES (?, ?, ?)',
+          [username, passwordHash, hwid],
           function(err) {
             if (err) {
               console.error('Database error:', err);
@@ -183,11 +180,10 @@ app.post('/api/auth/register', async (req, res) => {
               [this.lastID, hwid, getClientIP(req)]
             );
 
-            console.log(`✅ New user registered: ${username}`);
+            console.log(`✅ New user registered: ${username} (NO SUBSCRIPTION - admin must add)`);
             res.json({ 
               success: true, 
-              message: 'User registered successfully',
-              subscription_end: subscriptionEnd.toISOString()
+              message: 'Registration successful! Contact administrator for subscription activation.'
             });
           }
         );
