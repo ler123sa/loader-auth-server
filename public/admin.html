@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MegaSelf Admin Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0d1117;
+            color: #e6edf3;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: #161b22;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #30363d;
+        }
+        
+        .header h1 {
+            color: #58a6ff;
+            margin-bottom: 10px;
+        }
+        
+        .admin-key-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 15px;
+        }
+        
+        .admin-key-input input {
+            flex: 1;
+            padding: 8px 12px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #e6edf3;
+            font-size: 14px;
+        }
+        
+        .admin-key-input input:focus {
+            outline: none;
+            border-color: #58a6ff;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            background: #238636;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        
+        .btn:hover {
+            background: #2ea043;
+        }
+        
+        .btn-danger {
+            background: #da3633;
+        }
+        
+        .btn-danger:hover {
+            background: #f85149;
+        }
+        
+        .btn-secondary {
+            background: #21262d;
+            border: 1px solid #30363d;
+        }
+        
+        .btn-secondary:hover {
+            background: #30363d;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .tab.active {
+            background: #58a6ff;
+            color: #0d1117;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card h3 {
+            color: #58a6ff;
+            margin-bottom: 15px;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #0d1117;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #30363d;
+        }
+        
+        .table th {
+            background: #161b22;
+            font-weight: 600;
+            color: #58a6ff;
+        }
+        
+        .table tr:hover {
+            background: #161b22;
+        }
+        
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status.active {
+            background: #238636;
+            color: white;
+        }
+        
+        .status.banned {
+            background: #da3633;
+            color: white;
+        }
+        
+        .status.expired {
+            background: #f85149;
+            color: white;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+        
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .modal-content h3 {
+            color: #58a6ff;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #e6edf3;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px 12px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #e6edf3;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #58a6ff;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert.success {
+            background: #238636;
+            color: white;
+        }
+        
+        .alert.error {
+            background: #da3633;
+            color: white;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7d8590;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .stat-card h4 {
+            color: #7d8590;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #58a6ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 MegaSelf Admin Panel</h1>
+            <p>Manage users, subscriptions, and monitor system activity</p>
+            <div class="admin-key-input">
+                <input type="password" id="adminKey" placeholder="Enter admin key..." />
+                <button class="btn" onclick="authenticate()">Connect</button>
+            </div>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <div id="mainContent" style="display: none;">
+            <div class="stats" id="statsContainer">
+                <!-- Stats will be loaded here -->
+            </div>
+
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('users')">👥 Users</div>
+                <div class="tab" onclick="switchTab('logs')">📋 Login Logs</div>
+            </div>
+
+            <div id="usersTab" class="tab-content active">
+                <div class="card">
+                    <h3>User Management</h3>
+                    <div id="usersTable" class="loading">Loading users...</div>
+                </div>
+            </div>
+
+            <div id="logsTab" class="tab-content">
+                <div class="card">
+                    <h3>Login Logs</h3>
+                    <div id="logsTable" class="loading">Loading logs...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="extendModal" class="modal">
+        <div class="modal-content">
+            <h3>Extend Subscription</h3>
+            <div class="form-group">
+                <label>User:</label>
+                <input type="text" id="extendUsername" readonly />
+            </div>
+            <div class="form-group">
+                <label>Days to add:</label>
+                <input type="number" id="extendDays" value="30" min="1" max="365" />
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('extendModal')">Cancel</button>
+                <button class="btn" onclick="extendSubscription()">Extend</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let adminKey = '';
+        let currentUsers = [];
+        
+        const API_URL = window.location.origin + '/api';
+        
+        function showAlert(message, type = 'success') {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.textContent = message;
+            alert.style.display = 'block';
+            
+            container.innerHTML = '';
+            container.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+        
+        async function authenticate() {
+            const keyInput = document.getElementById('adminKey');
+            adminKey = keyInput.value.trim();
+            
+            if (!adminKey) {
+                showAlert('Please enter admin key', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/admin/users?admin_key=${encodeURIComponent(adminKey)}`);
+                
+                if (response.ok) {
+                    document.getElementById('mainContent').style.display = 'block';
+                    keyInput.value = '';
+                    loadDashboard();
+                    showAlert('Connected successfully!');
+                } else {
+                    showAlert('Invalid admin key', 'error');
+                }
+            } catch (error) {
+                showAlert('Connection failed: ' + error.message, 'error');
+            }
+        }
+        
+        async function loadDashboard() {
+            await Promise.all([
+                loadStats(),
+                loadUsers(),
+                loadLogs()
+            ]);
+        }
+        
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_URL}/admin/users?admin_key=${encodeURIComponent(adminKey)}`);
+                const users = await response.json();
+                
+                const totalUsers = users.length;
+                const activeUsers = users.filter(u => !u.is_banned && hasValidSubscription(u.subscription_end)).length;
+                const bannedUsers = users.filter(u => u.is_banned).length;
+                const expiredUsers = users.filter(u => !hasValidSubscription(u.subscription_end) && !u.is_banned).length;
+                
+                document.getElementById('statsContainer').innerHTML = `
+                    <div class="stat-card">
+                        <h4>Total Users</h4>
+                        <div class="number">${totalUsers}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Active Users</h4>
+                        <div class="number">${activeUsers}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Banned Users</h4>
+                        <div class="number">${bannedUsers}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Expired Subscriptions</h4>
+                        <div class="number">${expiredUsers}</div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+        
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_URL}/admin/users?admin_key=${encodeURIComponent(adminKey)}`);
+                const users = await response.json();
+                currentUsers = users;
+                
+                const tableHtml = `
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>HWID</th>
+                                <th>Status</th>
+                                <th>Subscription</th>
+                                <th>Logins</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${users.map(user => `
+                                <tr>
+                                    <td>${user.id}</td>
+                                    <td>${user.username}</td>
+                                    <td>${user.hwid ? user.hwid.substring(0, 12) + '...' : 'Not set'}</td>
+                                    <td>
+                                        <span class="status ${getStatusClass(user)}">
+                                            ${getStatusText(user)}
+                                        </span>
+                                    </td>
+                                    <td>${formatDate(user.subscription_end)}</td>
+                                    <td>${user.login_count || 0}</td>
+                                    <td>
+                                        <div class="actions">
+                                            <button class="btn btn-secondary" onclick="openExtendModal(${user.id}, '${user.username}')">
+                                                Extend
+                                            </button>
+                                            <button class="btn ${user.is_banned ? 'btn' : 'btn-danger'}" onclick="toggleBan(${user.id}, ${!user.is_banned})">
+                                                ${user.is_banned ? 'Unban' : 'Ban'}
+                                            </button>
+                                            <button class="btn btn-secondary" onclick="resetHWID(${user.id})">
+                                                Reset HWID
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                
+                document.getElementById('usersTable').innerHTML = tableHtml;
+            } catch (error) {
+                document.getElementById('usersTable').innerHTML = '<p>Failed to load users</p>';
+            }
+        }
+        
+        async function loadLogs() {
+            try {
+                const response = await fetch(`${API_URL}/admin/logs?admin_key=${encodeURIComponent(adminKey)}`);
+                const logs = await response.json();
+                
+                const tableHtml = `
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Username</th>
+                                <th>HWID</th>
+                                <th>IP</th>
+                                <th>Result</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${logs.map(log => `
+                                <tr>
+                                    <td>${formatDateTime(log.timestamp)}</td>
+                                    <td>${log.username || 'Unknown'}</td>
+                                    <td>${log.hwid ? log.hwid.substring(0, 12) + '...' : 'N/A'}</td>
+                                    <td>${log.ip_address}</td>
+                                    <td>
+                                        <span class="status ${log.success ? 'active' : 'banned'}">
+                                            ${log.success ? 'Success' : 'Failed'}
+                                        </span>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                
+                document.getElementById('logsTable').innerHTML = tableHtml;
+            } catch (error) {
+                document.getElementById('logsTable').innerHTML = '<p>Failed to load logs</p>';
+            }
+        }
+        
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName + 'Tab').classList.add('active');
+        }
+        
+        function getStatusClass(user) {
+            if (user.is_banned) return 'banned';
+            if (!hasValidSubscription(user.subscription_end)) return 'expired';
+            return 'active';
+        }
+        
+        function getStatusText(user) {
+            if (user.is_banned) return 'Banned';
+            if (!hasValidSubscription(user.subscription_end)) return 'Expired';
+            return 'Active';
+        }
+        
+        function hasValidSubscription(subscriptionEnd) {
+            if (!subscriptionEnd) return false;
+            return new Date(subscriptionEnd) > new Date();
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return 'Never';
+            return new Date(dateString).toLocaleDateString();
+        }
+        
+        function formatDateTime(dateString) {
+            if (!dateString) return 'Never';
+            return new Date(dateString).toLocaleString();
+        }
+        
+        function openExtendModal(userId, username) {
+            document.getElementById('extendUsername').value = username;
+            document.getElementById('extendModal').dataset.userId = userId;
+            document.getElementById('extendModal').classList.add('show');
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+        
+        async function extendSubscription() {
+            const modal = document.getElementById('extendModal');
+            const userId = modal.dataset.userId;
+            const days = document.getElementById('extendDays').value;
+            
+            try {
+                const response = await fetch(`${API_URL}/admin/extend-subscription`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        admin_key: adminKey,
+                        user_id: parseInt(userId),
+                        days: parseInt(days)
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showAlert(result.message);
+                    closeModal('extendModal');
+                    loadUsers();
+                    loadStats();
+                } else {
+                    showAlert(result.error, 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to extend subscription: ' + error.message, 'error');
+            }
+        }
+        
+        async function toggleBan(userId, banned) {
+            try {
+                const response = await fetch(`${API_URL}/admin/ban`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        admin_key: adminKey,
+                        user_id: userId,
+                        banned: banned
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showAlert(result.message);
+                    loadUsers();
+                    loadStats();
+                } else {
+                    showAlert(result.error, 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to update ban status: ' + error.message, 'error');
+            }
+        }
+        
+        async function resetHWID(userId) {
+            if (!confirm('Are you sure you want to reset HWID for this user?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/admin/reset-hwid`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        admin_key: adminKey,
+                        user_id: userId
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showAlert(result.message);
+                    loadUsers();
+                } else {
+                    showAlert(result.error, 'error');
+                }
+            } catch (error) {
+                showAlert('Failed to reset HWID: ' + error.message, 'error');
+            }
+        }
+        
+        // Auto-authenticate if admin key is in localStorage
+        window.addEventListener('load', () => {
+            const savedKey = localStorage.getItem('adminKey');
+            if (savedKey) {
+                document.getElementById('adminKey').value = savedKey;
+                authenticate();
+            }
+        });
+        
+        // Save admin key to localStorage on successful auth
+        const originalAuthenticate = authenticate;
+        authenticate = async function() {
+            await originalAuthenticate();
+            if (document.getElementById('mainContent').style.display !== 'none') {
+                localStorage.setItem('adminKey', adminKey);
+            }
+        };
+    </script>
+</body>
+</html>
