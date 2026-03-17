@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MegaSelf Login</title>
+    <style>
+        /* Используем системные шрифты вместо Google Fonts для безопасности */
+        
+        :root {
+            --bg-primary: #0d0d1a;
+            --bg-secondary: rgba(255, 255, 255, 0.05);
+            --bg-secondary-hover: rgba(255, 255, 255, 0.08);
+            --border-primary: rgba(255, 255, 255, 0.1);
+            --border-focus: rgba(255, 255, 255, 0.3);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.6);
+            --text-placeholder: rgba(255, 255, 255, 0.4);
+            --button-bg: #ffffff;
+            --button-text: #0d0d1a;
+            --button-hover: #e0e0e0;
+            --button-disabled: rgba(255, 255, 255, 0.3);
+            --success-bg: rgba(34, 197, 94, 0.1);
+            --success-border: rgba(34, 197, 94, 0.3);
+            --success-text: #22c55e;
+            --error-bg: rgba(239, 68, 68, 0.1);
+            --error-border: rgba(239, 68, 68, 0.3);
+            --error-text: #ef4444;
+            --hover-overlay: rgba(255, 255, 255, 0.1);
+        }
+        
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: rgba(0, 0, 0, 0.05);
+            --bg-secondary-hover: rgba(0, 0, 0, 0.08);
+            --border-primary: rgba(0, 0, 0, 0.1);
+            --border-focus: rgba(0, 0, 0, 0.3);
+            --text-primary: #1a1a1a;
+            --text-secondary: rgba(0, 0, 0, 0.6);
+            --text-placeholder: rgba(0, 0, 0, 0.4);
+            --button-bg: #1a1a1a;
+            --button-text: #ffffff;
+            --button-hover: #333333;
+            --button-disabled: rgba(0, 0, 0, 0.3);
+            --success-bg: rgba(34, 197, 94, 0.1);
+            --success-border: rgba(34, 197, 94, 0.3);
+            --success-text: #16a34a;
+            --error-bg: rgba(239, 68, 68, 0.1);
+            --error-border: rgba(239, 68, 68, 0.3);
+            --error-text: #dc2626;
+            --hover-overlay: rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            -webkit-user-drag: none;
+            -moz-user-drag: none;
+            user-drag: none;
+            transition: all 0.3s ease;
+            overflow: hidden; /* Убираем скроллбар */
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            z-index: 10;
+            opacity: 1;
+            transition: all 0.5s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 20px;
+            border: 3px solid var(--border-primary);
+            border-top: 3px solid var(--text-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            color: var(--text-primary);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .login-box {
+            background: var(--bg-primary);
+            width: 480px;
+            height: 620px;
+            padding: 40px;
+            border-radius: 12px;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden; /* Убираем скроллбар внутри */
+        }
+        
+        .header-controls {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .theme-toggle, .close-btn {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .theme-toggle:hover, .close-btn:hover {
+            background: var(--hover-overlay);
+        }
+        
+        .theme-icon {
+            width: 16px;
+            height: 16px;
+            position: relative;
+        }
+        
+        .theme-icon::before {
+            content: '🌙';
+            position: absolute;
+            font-size: 16px;
+            transition: all 0.5s ease;
+            opacity: 1;
+        }
+        
+        [data-theme="light"] .theme-icon::before {
+            content: '☀️';
+        }
+        
+        .close-btn::before,
+        .close-btn::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 2px;
+            background: var(--text-primary);
+            border-radius: 1px;
+        }
+        
+        .close-btn::before {
+            transform: rotate(45deg);
+        }
+        
+        .close-btn::after {
+            transform: rotate(-45deg);
+        }
+        
+        .login-title {
+            color: var(--text-primary);
+            font-size: 24px;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 40px;
+            transition: color 0.3s ease;
+        }
+        
+        .notification {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 0;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .notification.show {
+            opacity: 1;
+            max-height: 50px;
+            margin-bottom: 20px;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        
+        .notification.success {
+            background: var(--success-bg);
+            border: 1px solid var(--success-border);
+            color: var(--success-text);
+        }
+        
+        .notification.error {
+            background: var(--error-bg);
+            border: 1px solid var(--error-border);
+            color: var(--error-text);
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+            position: relative;
+        }
+        
+        .form-label {
+            display: block;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            transition: color 0.3s ease;
+        }
+        
+        .input-wrapper {
+            position: relative;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 16px;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s ease;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+        
+        .form-input:focus {
+            border-color: var(--border-focus);
+            background: var(--bg-secondary-hover);
+        }
+        
+        .form-input::placeholder {
+            color: var(--text-placeholder);
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        .password-toggle::before {
+            content: '👁️';
+            font-size: 16px;
+        }
+
+        .password-toggle.hidden::before {
+            content: '🙈';
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            margin-bottom: 24px;
+        }
+
+        .checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border-primary);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox.checked {
+            background: var(--button-bg);
+            border-color: var(--button-bg);
+        }
+
+        .checkbox.checked::after {
+            content: '✓';
+            color: var(--button-text);
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .checkbox-label {
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        
+        .auth-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        
+        .auth-btn {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .login-btn {
+            background: var(--button-bg);
+            color: var(--button-text);
+        }
+        
+        .login-btn:hover {
+            background: var(--button-hover);
+        }
+        
+        .register-btn {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-primary);
+        }
+        
+        .register-btn:hover {
+            background: var(--bg-secondary-hover);
+        }
+        
+        .auth-btn:disabled {
+            background: var(--button-disabled);
+            cursor: not-allowed;
+        }
+        
+        .footer-text {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box" id="loginBox">
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
+            <div class="loading-text">Loading...</div>
+        </div>
+
+        <div class="header-controls">
+            <div class="theme-toggle" id="themeToggle">
+                <div class="theme-icon"></div>
+            </div>
+            <div class="close-btn" onclick="closeWindow()"></div>
+        </div>
+        
+        <h1 class="login-title">MegaSelf Loader</h1>
+        
+        <div id="notification" class="notification"></div>
+        
+        <form id="authForm" autocomplete="off">
+            <div class="form-group">
+                <label class="form-label" for="username">Username</label>
+                <div class="input-wrapper">
+                    <input type="text" id="username" class="form-input" placeholder="Enter your username" autocomplete="off" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="password" class="form-input" placeholder="Enter your password" autocomplete="new-password" required>
+                    <div class="password-toggle" id="passwordToggle"></div>
+                </div>
+            </div>
+
+            <div class="remember-me" id="rememberMe">
+                <div class="checkbox" id="rememberCheckbox"></div>
+                <span class="checkbox-label">Remember me</span>
+            </div>
+            
+            <div class="auth-buttons">
+                <button type="button" class="auth-btn login-btn" id="loginBtn">
+                    Login
+                </button>
+                <button type="button" class="auth-btn register-btn" id="registerBtn">
+                    Register
+                </button>
+            </div>
+        </form>
+        
+        <div class="footer-text">
+            Secure authentication powered by MegaSelf
+        </div>
+    </div>
+
+    <script>
+        let isRememberChecked = false;
+        let isPasswordVisible = false;
+        
+        // Theme management
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        
+        if (savedTheme === 'light') {
+            body.setAttribute('data-theme', 'light');
+        }
+        
+        themeToggle.addEventListener('click', function() {
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+
+        // Password toggle
+        const passwordToggle = document.getElementById('passwordToggle');
+        const passwordInput = document.getElementById('password');
+
+        passwordToggle.addEventListener('click', function() {
+            isPasswordVisible = !isPasswordVisible;
+            passwordInput.type = isPasswordVisible ? 'text' : 'password';
+            passwordToggle.classList.toggle('hidden', isPasswordVisible);
+        });
+
+        // Remember me checkbox
+        const rememberMe = document.getElementById('rememberMe');
+        const rememberCheckbox = document.getElementById('rememberCheckbox');
+
+        rememberMe.addEventListener('click', function() {
+            isRememberChecked = !isRememberChecked;
+            rememberCheckbox.classList.toggle('checked', isRememberChecked);
+        });
+
+        // Notification system
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 10);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+
+        // Loading state
+        function showLoading(show = true) {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            if (show) {
+                loadingOverlay.classList.remove('hidden');
+            } else {
+                loadingOverlay.classList.add('hidden');
+            }
+        }
+
+        // Button loading state
+        function setButtonLoading(button, loading) {
+            if (loading) {
+                button.disabled = true;
+                button.innerHTML = `
+                    <div style="width: 20px; height: 20px; border: 2px solid transparent; border-top: 2px solid currentColor; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    Processing...
+                `;
+            } else {
+                button.disabled = false;
+                button.innerHTML = button.id === 'loginBtn' ? 'Login' : 'Register';
+            }
+        }
+
+        // Authentication functions
+        async function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+
+            if (!username || !password) {
+                showNotification('Please fill in all fields', 'error');
+                return;
+            }
+
+            setButtonLoading(loginBtn, true);
+
+            try {
+                // Get HWID from C++ side
+                const hwid = await getHWID();
+                
+                // Попробуем несколько раз подключиться к серверу
+                let response;
+                let attempts = 0;
+                const maxAttempts = 3;
+                
+                while (attempts < maxAttempts) {
+                    try {
+                        response = await fetch('https://loader-auth-server.onrender.com/api/auth/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                username: username,
+                                password: password,
+                                hwid: hwid
+                            })
+                        });
+                        break; // Если успешно, выходим из цикла
+                    } catch (fetchError) {
+                        attempts++;
+                        if (attempts < maxAttempts) {
+                            showNotification(`Connection attempt ${attempts}/${maxAttempts}...`, 'error');
+                            await new Promise(resolve => setTimeout(resolve, 2000)); // Ждем 2 секунды
+                        } else {
+                            throw fetchError; // Если все попытки неудачны
+                        }
+                    }
+                }
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showNotification('Login successful!', 'success');
+                    
+                    if (isRememberChecked) {
+                        saveRememberData(username, password);
+                    }
+                    
+                    // Store user data
+                    localStorage.setItem('userData', JSON.stringify(result.user));
+                    
+                    setTimeout(() => {
+                        navigateToProfile();
+                    }, 1000);
+                } else {
+                    showNotification(result.error, 'error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showNotification('Server is starting up, please wait 30 seconds and try again.', 'error');
+            } finally {
+                setButtonLoading(loginBtn, false);
+            }
+        }
+
+        async function register() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const registerBtn = document.getElementById('registerBtn');
+
+            if (!username || !password) {
+                showNotification('Please fill in all fields', 'error');
+                return;
+            }
+
+            if (username.length < 3 || username.length > 20) {
+                showNotification('Username must be 3-20 characters long', 'error');
+                return;
+            }
+
+            if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                showNotification('Username can only contain letters, numbers, and underscores', 'error');
+                return;
+            }
+
+            if (password.length < 3) {
+                showNotification('Password must be at least 3 characters long', 'error');
+                return;
+            }
+
+            setButtonLoading(registerBtn, true);
+
+            try {
+                // Get HWID from C++ side
+                const hwid = await getHWID();
+                
+                // Попробуем несколько раз подключиться к серверу
+                let response;
+                let attempts = 0;
+                const maxAttempts = 3;
+                
+                while (attempts < maxAttempts) {
+                    try {
+                        response = await fetch('https://loader-auth-server.onrender.com/api/auth/register', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                username: username,
+                                password: password,
+                                hwid: hwid
+                            })
+                        });
+                        break; // Если успешно, выходим из цикла
+                    } catch (fetchError) {
+                        attempts++;
+                        if (attempts < maxAttempts) {
+                            showNotification(`Connection attempt ${attempts}/${maxAttempts}...`, 'error');
+                            await new Promise(resolve => setTimeout(resolve, 2000)); // Ждем 2 секунды
+                        } else {
+                            throw fetchError; // Если все попытки неудачны
+                        }
+                    }
+                }
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showNotification('Registration successful! You can now login.', 'success');
+                    
+                    // Clear form
+                    document.getElementById('username').value = '';
+                    document.getElementById('password').value = '';
+                } else {
+                    showNotification(result.error, 'error');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showNotification('Server is starting up, please wait 30 seconds and try again.', 'error');
+            } finally {
+                setButtonLoading(registerBtn, false);
+            }
+        }
+
+        // Event listeners
+        document.getElementById('loginBtn').addEventListener('click', login);
+        document.getElementById('registerBtn').addEventListener('click', register);
+
+        // Form submission
+        document.getElementById('authForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            login();
+        });
+
+        // Drag functionality
+        let isDragging = false;
+
+        document.addEventListener('mousedown', function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || 
+                e.target.closest('.auth-btn') || e.target.closest('.close-btn') ||
+                e.target.closest('.theme-toggle') || e.target.closest('.password-toggle') ||
+                e.target.closest('.remember-me')) {
+                return;
+            }
+            
+            isDragging = true;
+            startDrag();
+        });
+
+        document.addEventListener('mouseup', function() {
+            isDragging = false;
+        });
+
+        // Disable context menu and dev tools
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F12' || 
+                (e.ctrlKey && e.shiftKey && e.key === 'I') ||
+                (e.ctrlKey && e.shiftKey && e.key === 'C') ||
+                (e.ctrlKey && e.key === 'u')) {
+                e.preventDefault();
+            }
+        });
+
+        // Interface functions that will be called from C++
+        function getHWID() {
+            return new Promise((resolve) => {
+                // This will be implemented in C++ WebView message handler
+                window.chrome.webview.postMessage('get_hwid');
+                
+                // Listen for response
+                window.addEventListener('message', function handler(event) {
+                    if (event.data.startsWith('hwid:')) {
+                        window.removeEventListener('message', handler);
+                        resolve(event.data.substring(5));
+                    }
+                });
+            });
+        }
+
+        function saveRememberData(username, password) {
+            window.chrome.webview.postMessage('save_remember:' + JSON.stringify({
+                username: username,
+                password: password
+            }));
+        }
+
+        function startDrag() {
+            window.chrome.webview.postMessage('start_drag');
+        }
+
+        function closeWindow() {
+            window.chrome.webview.postMessage('close_window');
+        }
+
+        function navigateToProfile() {
+            window.chrome.webview.postMessage('navigate_to_profile');
+        }
+
+        // Load remembered data
+        function loadRememberedData() {
+            window.chrome.webview.postMessage('load_remember_data');
+        }
+
+        // Handle messages from C++
+        window.addEventListener('message', function(event) {
+            if (event.data.startsWith('remembered_data:')) {
+                const data = JSON.parse(event.data.substring(16));
+                document.getElementById('username').value = data.username;
+                document.getElementById('password').value = data.password;
+                isRememberChecked = true;
+                rememberCheckbox.classList.add('checked');
+            } else if (event.data === 'auto_login') {
+                login();
+            }
+        });
+
+        // Initialize - запускаем сразу без ожидания событий
+        (function() {
+            // Небольшая задержка для рендеринга DOM
+            setTimeout(() => {
+                showLoading(false);
+                loadRememberedData();
+            }, 100);
+        })();
+    </script>
+</body>
+</html>
