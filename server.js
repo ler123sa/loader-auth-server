@@ -5,6 +5,42 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const fs = require('fs');
+
+// HTML Interface Routes - загружаем полные интерфейсы с сервера для безопасности
+const loginHtmlPath = path.join(__dirname, 'auth_interface', 'login.html');
+const profileHtmlPath = path.join(__dirname, 'auth_interface', 'profile.html');
+
+app.get('/interface/login', (req, res) => {
+  try {
+    if (fs.existsSync(loginHtmlPath)) {
+      const loginHtml = fs.readFileSync(loginHtmlPath, 'utf8');
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.send(loginHtml);
+    } else {
+      res.status(404).send('Login page not found');
+    }
+  } catch (error) {
+    console.error('Error serving login page:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+app.get('/interface/profile', (req, res) => {
+  try {
+    if (fs.existsSync(profileHtmlPath)) {
+      const profileHtml = fs.readFileSync(profileHtmlPath, 'utf8');
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.send(profileHtml);
+    } else {
+      res.status(404).send('Profile page not found');
+    }
+  } catch (error) {
+    console.error('Error serving profile page:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
