@@ -493,13 +493,13 @@
         }
 
         .launch-btn {
-            width: 200px;
-            padding: 12px 20px;
+            width: 120px;
+            padding: 10px 16px;
             background: var(--button-bg);
             color: var(--button-text);
             border: none;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             font-family: inherit;
             cursor: pointer;
@@ -987,9 +987,6 @@
         </div>
 
         <div class="header-controls">
-            <div class="language-toggle" id="languageToggle" onclick="toggleLanguage()">
-                <span id="langText">RU</span>
-            </div>
             <div class="theme-toggle" id="themeToggle">
                 <div class="theme-icon"></div>
             </div>
@@ -1254,37 +1251,11 @@
         }
         
         function updateLanguage() {
-            // Обновляем все элементы с data-i18n
+            // Обновляем все элементы с data-i18n - всегда русский
             document.querySelectorAll('[data-i18n]').forEach(element => {
                 const key = element.getAttribute('data-i18n');
                 element.textContent = t(key);
             });
-            
-            // Обновляем плейсхолдеры
-            document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
-                const key = element.getAttribute('data-i18n-placeholder');
-                element.placeholder = t(key);
-            });
-            
-            localStorage.setItem('language', currentLanguage);
-        }
-        
-        function toggleLanguage() {
-            const newLanguage = currentLanguage === 'ru' ? 'en' : 'ru';
-            currentLanguage = newLanguage;
-            
-            // Обновляем интерфейс
-            updateLanguage();
-            
-            // Отправляем сообщение в C++ как в оригинальном коде
-            window.chrome.webview.postMessage('set_lang:' + newLanguage);
-            
-            // Обновляем текст кнопки языка - показываем язык, на который можно переключиться
-            const nextLanguage = currentLanguage === 'ru' ? 'EN' : 'RU';
-            document.getElementById('langText').textContent = nextLanguage;
-            
-            // Сохраняем в localStorage для синхронизации
-            localStorage.setItem('language', currentLanguage);
         }
         
         // Theme management
@@ -1669,6 +1640,18 @@
             } else if (event.data === 'download_error') {
                 hideProgressOverlay();
                 showNotification('Ошибка загрузки', 'error');
+            } else if (event.data === 'user_banned') {
+                // Пользователь забанен - перенаправляем на логин
+                showNotification('Ваш аккаунт заблокирован', 'error');
+                setTimeout(() => {
+                    navigateToLogin();
+                }, 2000);
+            } else if (event.data === 'subscription_expired') {
+                // Подписка истекла - перенаправляем на логин
+                showNotification('Подписка истекла', 'error');
+                setTimeout(() => {
+                    navigateToLogin();
+                }, 2000);
             }
         });
         
