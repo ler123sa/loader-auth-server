@@ -493,13 +493,14 @@
         }
 
         .launch-btn {
-            width: 120px;
-            padding: 10px 16px;
+            flex: 1;
+            max-width: 200px;
+            padding: 12px 20px;
             background: var(--button-bg);
             color: var(--button-text);
             border: none;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 600;
             font-family: inherit;
             cursor: pointer;
@@ -1630,10 +1631,16 @@
                     // Не JSON, игнорируем
                 }
             } else if (event.data === 'download_start') {
+                // Показываем прогресс загрузки
+                const overlay = document.getElementById('progressOverlay');
+                overlay.classList.add('show');
                 showProgressOverlay(t('downloadingJava'), 'Подготовка...');
             } else if (event.data === 'launching_game') {
-                // Игра запускается без прогресса - показываем уведомление
-                showNotification(t('gameStarted'));
+                // Игра запускается без прогресса - просто убираем состояние launching
+                const launchBtn = document.getElementById('launchBtn');
+                launchBtn.classList.remove('launching');
+                launchBtn.querySelector('span').textContent = t('launch');
+                isLaunching = false;
             } else if (event.data === 'download_complete') {
                 hideProgressOverlay();
                 showNotification(t('gameStarted'));
@@ -1641,15 +1648,19 @@
                 hideProgressOverlay();
                 showNotification('Ошибка загрузки', 'error');
             } else if (event.data === 'user_banned') {
-                // Пользователь забанен - перенаправляем на логин
+                // Пользователь забанен - закрываем игру и перенаправляем на логин
                 showNotification('Ваш аккаунт заблокирован', 'error');
+                window.chrome.webview.postMessage('terminate_game');
                 setTimeout(() => {
+                    localStorage.removeItem('userData');
                     navigateToLogin();
                 }, 2000);
             } else if (event.data === 'subscription_expired') {
-                // Подписка истекла - перенаправляем на логин
+                // Подписка истекла - закрываем игру и перенаправляем на логин
                 showNotification('Подписка истекла', 'error');
+                window.chrome.webview.postMessage('terminate_game');
                 setTimeout(() => {
+                    localStorage.removeItem('userData');
                     navigateToLogin();
                 }, 2000);
             }
