@@ -494,7 +494,6 @@
 
         .launch-btn {
             flex: 1;
-            max-width: 200px;
             padding: 12px 20px;
             background: var(--button-bg);
             color: var(--button-text);
@@ -1630,6 +1629,10 @@
                 } catch (e) {
                     // Не JSON, игнорируем
                 }
+            } else if (event.data && typeof event.data === 'string' && event.data.startsWith('debug:')) {
+                // Отладочные сообщения
+                console.log('[DEBUG]', event.data);
+                showNotification(event.data.substring(6), 'success');
             } else if (event.data === 'download_start') {
                 // Показываем прогресс загрузки
                 const overlay = document.getElementById('progressOverlay');
@@ -1641,6 +1644,13 @@
                 launchBtn.classList.remove('launching');
                 launchBtn.querySelector('span').textContent = t('launch');
                 isLaunching = false;
+            } else if (event.data === 'launch_success') {
+                // Игра успешно запущена
+                const launchBtn = document.getElementById('launchBtn');
+                launchBtn.classList.remove('launching');
+                launchBtn.querySelector('span').textContent = t('launch');
+                isLaunching = false;
+                showNotification(t('gameStarted'));
             } else if (event.data === 'download_complete') {
                 hideProgressOverlay();
                 showNotification(t('gameStarted'));
