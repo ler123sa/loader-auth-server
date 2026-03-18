@@ -1609,6 +1609,14 @@
                 updateLanguage();
                 const nextLanguage = currentLanguage === 'ru' ? 'EN' : 'RU';
                 document.getElementById('langText').textContent = nextLanguage;
+            } else if (event.data.startsWith('language_changed:')) {
+                // Получаем подтверждение смены языка от C++
+                const lang = event.data.substring(17);
+                currentLanguage = lang;
+                updateLanguage();
+                const nextLanguage = currentLanguage === 'ru' ? 'EN' : 'RU';
+                document.getElementById('langText').textContent = nextLanguage;
+                showNotification('Language changed to ' + (lang === 'ru' ? 'Russian' : 'English'));
             } else if (event.data.startsWith('launch_status:')) {
                 const status = event.data.substring(14);
                 showNotification(status, status.includes('error') ? 'error' : 'success');
