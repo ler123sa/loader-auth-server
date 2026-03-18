@@ -1621,7 +1621,7 @@
                 const status = event.data.substring(14);
                 showNotification(status, status.includes('error') ? 'error' : 'success');
             } else if (event.data.startsWith('progress:')) {
-                // Обработка прогресса загрузки
+                // Обработка прогресса загрузки (старый формат)
                 try {
                     const progressData = JSON.parse(event.data.substring(9));
                     updateProgress(
@@ -1634,8 +1634,35 @@
                 } catch (e) {
                     console.error('Error parsing progress data:', e);
                 }
+            } else if (typeof event.data === 'object' && event.data.type === 'progress') {
+                // Обработка прогресса загрузки (новый формат)
+                updateProgress(
+                    event.data.percent,
+                    event.data.currentMb,
+                    event.data.totalMb,
+                    event.data.status,
+                    event.data.title
+                );
+            } else if (typeof event.data === 'string') {
+                try {
+                    const parsed = JSON.parse(event.data);
+                    if (parsed.type === 'progress') {
+                        updateProgress(
+                            parsed.percent,
+                            parsed.currentMb,
+                            parsed.totalMb,
+                            parsed.status,
+                            parsed.title
+                        );
+                    }
+                } catch (e) {
+                    // Не JSON, игнорируем
+                }
             } else if (event.data === 'download_start') {
                 showProgressOverlay(t('downloadingJava'), 'Подготовка...');
+            } else if (event.data === 'launching_game') {
+                // Игра запускается без прогресса - показываем уведомление
+                showNotification(t('gameStarted'));
             } else if (event.data === 'download_complete') {
                 hideProgressOverlay();
                 showNotification(t('gameStarted'));
@@ -1644,6 +1671,22 @@
                 showNotification('Ошибка загрузки', 'error');
             }
         });
+        
+        // Handle WebView JSON messages
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.addEventListener('message', function(event) {
+                const data = event.data;
+                if (data && data.type === 'progress') {
+                    updateProgress(
+                        data.percent,
+                        data.currentMb,
+                        data.totalMb,
+                        data.status,
+                        data.title
+                    );
+                }
+            });
+        }
         
         // Initialize - запускаем сразу без ожидания событий
         (function() {
